@@ -11,6 +11,7 @@ def prime_check(num: int) -> bool:
     """
     Cheks is a number is primer
     """
+    if num == 1: return False 
     divisores = 0
 
     for i in range(2, num):
@@ -38,12 +39,14 @@ else:
 pkg = comm.scatter(pkg, root=0)
 
 if rank == 0:
-    sended_packages = n - 1 
-    res = []
+    sended_packages = n - 1
+    recived_packages = 0 
+    res = 0
     
-    while len(res) < K:
+    while recived_packages < len(packages):
         prank, pres = comm.recv(source=MPI.ANY_SOURCE)
-        res = res + pres
+        recived_packages = recived_packages + 1
+        res += pres
 
         if (sended_packages < len(packages)):
             comm.send((True, packages[sended_packages]), dest=prank)
@@ -53,15 +56,19 @@ if rank == 0:
             print(f"Root send orden to finish to process {rank}")
             comm.send((False, None), dest=prank)
 
-    print(*res,sep="\n")
-
+    print("RES = ", res)
+    res = 0
+    for number in range(Q, K + 1):
+        if prime_check(number):
+            res += 1
+    print("RES (linear) = ", res)
 else: 
     sw = True
     while sw:
         print(f"Process {rank} got package = {pkg}")
-        res = []
+        res = 0
         for number in pkg:
-            res.append((number, prime_check(number)))
+            if prime_check(number): res += 1
         
         comm.send((rank, res), dest=0)
         sw, pkg = comm.recv(source=0)

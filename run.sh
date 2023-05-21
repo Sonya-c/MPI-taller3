@@ -1,1 +1,1 @@
-mpiexec --oversubscribe --allow-run-as-root -n 5 python main.py 100 1
+mpiexec --oversubscribe --allow-run-as-root -n 3 python main.py 1000 1
